@@ -10,7 +10,7 @@ class Agent:
         self.alpha = alpha
         self.gamma = gamma
 
-    def encode_state(self, history):
+    def encode_state(self, history):     # history is a list of 5 tuples: (self_action, opp_action)
         """Encode last 5 (self, opp) moves as integer index ∈ [0, 1023]"""
         idx = 0
         for (a, b) in history:

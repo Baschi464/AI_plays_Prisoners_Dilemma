@@ -22,16 +22,16 @@ EPSILON_MIN = 0.01
 EPSILON_DECAY = 0.995
 
 # Initialize agents  (alpha=learning_rate; gamma=discount_factor)
-agent0 = Agent(name="bob", alpha=0.1, gamma=0.95)
-agent1 = Agent(name="carl", alpha=0.1, gamma=0.95)
-agent2 = Agent(name="steve", alpha=0.1, gamma=0.95)
-agent3 = Agent(name="joe", alpha=0.1, gamma=0.95)
-agent4 = Agent(name="george", alpha=0.1, gamma=0.95)
-agent5 = Agent(name="leila", alpha=0.1, gamma=0.95)
-agent6 = Agent(name="lea", alpha=0.1, gamma=0.95)
-agent7 = Agent(name="sophie", alpha=0.1, gamma=0.95)
-agent8 = Agent(name="julie", alpha=0.1, gamma=0.95)
-agent9 = Agent(name="lucy", alpha=0.1, gamma=0.95)
+agent0 = Agent(name="Pitson", alpha=0.1, gamma=0.95)
+agent1 = Agent(name="Futson", alpha=0.1, gamma=0.95)
+agent2 = Agent(name="Nicson", alpha=0.1, gamma=0.95)
+agent3 = Agent(name="Gecson", alpha=0.1, gamma=0.95)
+agent4 = Agent(name="Alecson", alpha=0.1, gamma=0.95)
+agent5 = Agent(name="Mikeson", alpha=0.1, gamma=0.95)
+agent6 = Agent(name="Gionson", alpha=0.1, gamma=0.95)
+agent7 = Agent(name="Laurson", alpha=0.1, gamma=0.95)
+agent8 = Agent(name="Carlson", alpha=0.1, gamma=0.95)
+agent9 = Agent(name="Tomson", alpha=0.1, gamma=0.95)
 agents = [agent0, agent1, agent2, agent3, agent4, agent5, agent6, agent7, agent8, agent9]
 epsilon = EPSILON_START
 

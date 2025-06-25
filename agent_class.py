@@ -5,10 +5,14 @@ class Agent:
     NUM_STATES = 1024   # 4^5
     NUM_ACTIONS = 2     # 0 = Cooperate, 1 = Defect
 
-    def __init__(self, alpha=0.1, gamma=0.95):
+    def __init__(self, name="agent", alpha=0.1, gamma=0.95):
+        self.name = name
         self.Q = torch.zeros(self.NUM_STATES, self.NUM_ACTIONS)
         self.alpha = alpha
         self.gamma = gamma
+
+    def get_name(self):
+        return self.name
 
     def encode_state(self, history):     # history is a list of 5 tuples: (self_action, opp_action)
         """Encode last 5 (self, opp) moves as integer index ∈ [0, 1023]"""

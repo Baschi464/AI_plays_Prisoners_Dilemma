@@ -24,6 +24,12 @@ for i in range(TOURNAMENT_ROUNDS):
         score_i, score_j, actions, rewards = game(agent_i, agent_j)
         results[agent_i.get_name()] += score_i
         results[agent_j.get_name()] += score_j
+        if score_i > score_j:
+            print(f"{agent_i.get_name()} WINS THE MATCH!")
+        elif score_j > score_i:
+            print(f"{agent_j.get_name()} WINS THE MATCH!")
+        else:
+            print("It's a TIE!")
 
 tournament_viz(list(results.keys()), list(results.values()))
 

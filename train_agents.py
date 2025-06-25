@@ -40,6 +40,9 @@ for epoch in range(NUM_EPOCHS):
     for i, j in combinations(range(NUM_AGENTS), 2):
         agent_i = agents[i]
         agent_j = agents[j]
+        score_i = 0
+        score_j = 0
+        print(f"Playing {agent_i.get_name()} vs {agent_j.get_name()}")
 
         # Start with padded memory: [('C', 'C')] = (0, 0)
         history_i = [(0, 0)] * MEMORY_SIZE
@@ -65,12 +68,24 @@ for epoch in range(NUM_EPOCHS):
             history_i = new_history_i
             history_j = new_history_j
 
+            # Update scores
+            score_i += r_i      
+            score_j += r_j
+
+        if score_i > score_j:
+            print(f"{agent_i.get_name()} WINS THE MATCH!")
+        elif score_j > score_i:
+            print(f"{agent_j.get_name()} WINS THE MATCH!")
+        else:
+            print("It's a TIE!")
+
     # Decay epsilon
     epsilon = max(EPSILON_MIN, epsilon * EPSILON_DECAY)
 
-    # Optional: print progress
+    # print training progress
     if (epoch + 1) % 100 == 0:
         print(f"Epoch {epoch + 1}, epsilon = {epsilon:.4f}")
+        print("------------------------------------------------------------------------")
 
 # Store agents
 with open("trained_agents.pkl", "wb") as f:

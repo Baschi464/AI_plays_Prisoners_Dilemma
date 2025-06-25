@@ -10,6 +10,7 @@ with open("trained_agents.pkl", "rb") as f:
 agent0, agent1, agent2, agent3, agent4, agent5, agent6, agent7, agent8, agent9 = agents
 
 # Run Tournament
+VISUALIZE_MATCHES = False  
 TOURNAMENT_ROUNDS = 10   # each agent plays n-1 matches per round (n = number of agents)
 NUM_AGENTS = len(agents)
 results = {agent.get_name(): 0 for agent in agents}
@@ -21,7 +22,7 @@ for i in range(TOURNAMENT_ROUNDS):
         agent_i = agents[i]
         agent_j = agents[j]
         print(f"Playing {agent_i.get_name()} vs {agent_j.get_name()}")
-        score_i, score_j, actions, rewards = game(agent_i, agent_j)
+        score_i, score_j, actions, rewards = game(agent_i, agent_j, visualize=VISUALIZE_MATCHES)
         results[agent_i.get_name()] += score_i
         results[agent_j.get_name()] += score_j
         if score_i > score_j:

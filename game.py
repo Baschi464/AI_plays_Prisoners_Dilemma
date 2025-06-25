@@ -3,40 +3,31 @@ from matplotlib.animation import FuncAnimation
 import matplotlib.patches as mpatches
 import numpy as np
 
+# -----------------------------------------------------------------
+
 def game_viz(agent1_name, agent2_name, actions, rewards, interval=1000):
-    """
-    Animated version of game_viz using matplotlib.animation.FuncAnimation
-
-    Parameters:
-    - agent1_name, agent2_name: str
-    - actions: list of (a1, a2) pairs
-    - rewards: list of (r1, r2) pairs
-    - interval: time between frames in ms
-    """
-
     rounds = len(actions)
-    fig, ax = plt.subplots(figsize=(1.5 * rounds, 3))
+    fig, ax = plt.subplots(figsize=(0.7 * rounds, 3))
     ax.set_xlim(-0.5, rounds - 0.5)
     ax.set_ylim(-1.5, 0.5)
     ax.axis('off')
 
+    # Preallocate circle objects
     circles = []
     for t in range(rounds):
-        circle1 = plt.Circle((t, 0), 0.4, color='white', ec='black')
-        circle2 = plt.Circle((t, -1), 0.4, color='white', ec='black')
+        circle1 = plt.Circle((t, 0), 0.2, color='white', ec='black')
+        circle2 = plt.Circle((t, -1), 0.2, color='white', ec='black')
         ax.add_patch(circle1)
         ax.add_patch(circle2)
         circles.append((circle1, circle2))
 
-    # Static agent labels
+    # Agent names
     ax.text(-1, 0, agent1_name, fontsize=12, fontweight='bold', verticalalignment='center')
     ax.text(-1, -1, agent2_name, fontsize=12, fontweight='bold', verticalalignment='center')
 
-    # Total rewards (static)
-    total_r1 = sum(r[0] for r in rewards)
-    total_r2 = sum(r[1] for r in rewards)
-    ax.text(rounds + 0.5, 0, f"Total: {total_r1}", fontsize=12, verticalalignment='center')
-    ax.text(rounds + 0.5, -1, f"Total: {total_r2}", fontsize=12, verticalalignment='center')
+    # Dynamic reward text (initialized as placeholders)
+    reward_text1 = ax.text(rounds + 0.5, 0, "Total: 0", fontsize=12, verticalalignment='center')
+    reward_text2 = ax.text(rounds + 0.5, -1, "Total: 0", fontsize=12, verticalalignment='center')
 
     # Legend
     green_patch = mpatches.Patch(color='green', label='Cooperate')
@@ -45,18 +36,30 @@ def game_viz(agent1_name, agent2_name, actions, rewards, interval=1000):
 
     plt.title(f"{agent1_name} vs {agent2_name}", fontsize=14)
 
+    # Accumulated rewards
+    cumulative_r1 = [0]
+    cumulative_r2 = [0]
+    for r1, r2 in rewards:
+        cumulative_r1.append(cumulative_r1[-1] + r1)
+        cumulative_r2.append(cumulative_r2[-1] + r2)
+
     def update(frame):
         a1, a2 = actions[frame]
         color1 = 'green' if a1 == 0 else 'red'
         color2 = 'green' if a2 == 0 else 'red'
         circles[frame][0].set_color(color1)
         circles[frame][1].set_color(color2)
-        return circles[frame]
+
+        reward_text1.set_text(f"Total: {cumulative_r1[frame + 1]}")
+        reward_text2.set_text(f"Total: {cumulative_r2[frame + 1]}")
+
+        return list(circles[frame]) + [reward_text1, reward_text2]
 
     anim = FuncAnimation(fig, update, frames=rounds, interval=interval, blit=False, repeat=False)
     plt.tight_layout()
-    plt.show()  
+    plt.show()
 
+# -----------------------------------------------------------------
 
 def game(agentA, agentB, visualize=False):
 
@@ -100,13 +103,14 @@ def game(agentA, agentB, visualize=False):
         actions.append((actA, actB))
         rewards.append((rewardA, rewardB))
         
-        print("round number "+ str(i+1) + ":\n", rewardA, rewardB)
+        #print("round number "+ str(i+1) + ":\n", rewardA, rewardB)
     
     if visualize:
         game_viz(agentA.get_name(), agentB.get_name(), actions, rewards)
 
     return (scoreA, scoreB, actions, rewards)  
 
+# -----------------------------------------------------------------
 
 def tournament_viz(names, scores):
     """
@@ -140,4 +144,3 @@ def tournament_viz(names, scores):
 
     plt.tight_layout()
     plt.show()
-

@@ -45,8 +45,8 @@ def game_viz(agent1_name, agent2_name, actions, rewards, interval=1000):
 
     def update(frame):
         a1, a2 = actions[frame]
-        color1 = 'green' if a1 == 0 else 'red'
-        color2 = 'green' if a2 == 0 else 'red'
+        color1 = 'green' if a1 == 1 else 'red'
+        color2 = 'green' if a2 == 1 else 'red'
         circles[frame][0].set_color(color1)
         circles[frame][1].set_color(color2)
 
@@ -65,10 +65,10 @@ def game(agentA, agentB, visualize=False):
 
     # Payoff matrix: (self_action, opponent_action) → reward
     REWARD_TABLE = {
-        (0, 0): 3,      
-        (0, 1): 0,
-        (1, 0): 5,
-        (1, 1): 1
+        (1, 1): 3,     # both cooperate 
+        (1, 0): 0,     # agent A cooperates, agent B defects
+        (0, 1): 5,     # agent A defects, agent B cooperates
+        (0, 0): 1      # both defect
     }
     ROUNDS=20
     MEMORY_SIZE = 5 # number of rounds that an agent remembers

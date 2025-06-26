@@ -5,10 +5,9 @@ class Agent:
     NUM_STATES = 1024   # 4^5
     NUM_ACTIONS = 2     # 0 = Cooperate, 1 = Defect
 
-    def __init__(self, name="agent", alpha=0.1, gamma=0.95):
+    def __init__(self, name="agent", gamma=0.95):
         self.name = name
         self.Q = torch.zeros(self.NUM_STATES, self.NUM_ACTIONS)
-        self.alpha = alpha
         self.gamma = gamma
 
     def get_name(self):
@@ -29,9 +28,9 @@ class Agent:
             return random.randint(0, 1)
         return torch.argmax(self.Q[state]).item()
 
-    def update(self, history, action, reward, next_history):
+    def update(self, history, action, reward, next_history, alpha=0.1):
         """Update Q-table based on transition"""
         s = self.encode_state(history)
         s_next = self.encode_state(next_history)
         td_target = reward + self.gamma * torch.max(self.Q[s_next])
-        self.Q[s, action] += self.alpha * (td_target - self.Q[s, action])
+        self.Q[s, action] += alpha * (td_target - self.Q[s, action])

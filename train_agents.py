@@ -4,36 +4,41 @@ import pickle
 
 # Constants
 NUM_AGENTS = 10
-NUM_EPOCHS = 1000
+NUM_EPOCHS = 100000
 NUM_ROUNDS = 20
 MEMORY_SIZE = 5
 
 # Payoff matrix: (self_action, opponent_action) → reward
 REWARD_TABLE = {
-    (0, 0): 3,      
-    (0, 1): 0,
-    (1, 0): 5,
-    (1, 1): 1
+    (1, 1): 3,      # both cooperate   
+    (1, 0): 0,      # agent A cooperates, agent B defects
+    (0, 1): 5,      # agent A defects, agent B cooperates
+    (0, 0): 1       # both defect
 }
 
-# Epsilon parameters
-EPSILON_START = 0.2
+# Epsilon parameters (exploration probability)
+EPSILON_START = 1.0    # epsilon >= 1 means agents acts fully random
 EPSILON_MIN = 0.01
-EPSILON_DECAY = 0.995
+EPSILON_DECAY = 0.999
+# Alpha parameters (learning rate)
+ALPHA_START = 0.3      # large enough for early learning
+ALPHA_MIN = 0.02       # small enough for stable late-stage convergence
+ALPHA_DECAY = 0.9995   # slower than epsilon decay
 
-# Initialize agents  (alpha=learning_rate; gamma=discount_factor)
-agent0 = Agent(name="Pitson", alpha=0.1, gamma=0.95)
-agent1 = Agent(name="Futson", alpha=0.1, gamma=0.95)
-agent2 = Agent(name="Nicson", alpha=0.1, gamma=0.95)
-agent3 = Agent(name="Gecson", alpha=0.1, gamma=0.95)
-agent4 = Agent(name="Alecson", alpha=0.1, gamma=0.95)
-agent5 = Agent(name="Mikeson", alpha=0.1, gamma=0.95)
-agent6 = Agent(name="Gionson", alpha=0.1, gamma=0.95)
-agent7 = Agent(name="Laurson", alpha=0.1, gamma=0.95)
-agent8 = Agent(name="Carlson", alpha=0.1, gamma=0.95)
-agent9 = Agent(name="Tomson", alpha=0.1, gamma=0.95)
+# Initialize agents  (gamma = discount_factor on future rewards)
+agent0 = Agent(name="Pitson", gamma=0.95)
+agent1 = Agent(name="Futson", gamma=0.95)
+agent2 = Agent(name="Nicson", gamma=0.95)
+agent3 = Agent(name="Gecson", gamma=0.95)
+agent4 = Agent(name="Alecson", gamma=0.95)
+agent5 = Agent(name="Mikeson", gamma=0.95)
+agent6 = Agent(name="Gionson", gamma=0.95)
+agent7 = Agent(name="Laurson", gamma=0.95)
+agent8 = Agent(name="Carlson", gamma=0.95)
+agent9 = Agent(name="Tomson", gamma=0.95)
 agents = [agent0, agent1, agent2, agent3, agent4, agent5, agent6, agent7, agent8, agent9]
 epsilon = EPSILON_START
+alpha = ALPHA_START
 
 for epoch in range(NUM_EPOCHS):
     # For every pair of agents
@@ -61,8 +66,8 @@ for epoch in range(NUM_EPOCHS):
             new_history_j = history_j[1:] + [(a_j, a_i)]
 
             # Q-learning update
-            agent_i.update(history_i, a_i, r_i, new_history_i)
-            agent_j.update(history_j, a_j, r_j, new_history_j)
+            agent_i.update(history_i, a_i, r_i, new_history_i, alpha=alpha)
+            agent_j.update(history_j, a_j, r_j, new_history_j, alpha=alpha)
 
             # Advance memory
             history_i = new_history_i
@@ -81,10 +86,12 @@ for epoch in range(NUM_EPOCHS):
 
     # Decay epsilon
     epsilon = max(EPSILON_MIN, epsilon * EPSILON_DECAY)
+    # Decay alpha
+    alpha = max(ALPHA_MIN, alpha * ALPHA_DECAY)
 
     # print training progress
     if (epoch + 1) % 100 == 0:
-        print(f"Epoch {epoch + 1}, epsilon = {epsilon:.4f}")
+        print(f"Epoch {epoch + 1}, epsilon = {epsilon:.4f}, alpha = {alpha:.4f}")
         #print("------------------------------------------------------------------------")
 
 # Store agents

@@ -1,10 +1,11 @@
 from agent_class import Agent
 from itertools import combinations
 import pickle
+import torch
 
 # Constants
 NUM_AGENTS = 10
-NUM_EPOCHS = 100000
+NUM_EPOCHS = 10000
 NUM_ROUNDS = 20
 MEMORY_SIZE = 5
 
@@ -39,6 +40,33 @@ agent9 = Agent(name="Tomson", gamma=0.95)
 agents = [agent0, agent1, agent2, agent3, agent4, agent5, agent6, agent7, agent8, agent9]
 epsilon = EPSILON_START
 alpha = ALPHA_START
+
+# ----- helper functions for learning tracking ---------
+
+def mean_q_change(Q_old: torch.Tensor, Q_new: torch.Tensor) -> float:
+    """
+    Computes the mean absolute change in Q-values between two Q-tables.
+
+    Parameters:
+    - Q_old: torch.Tensor of shape (num_states, num_actions)
+    - Q_new: torch.Tensor of same shape
+
+    Returns:
+    - Mean absolute change across all Q-values
+    """
+    if Q_old.shape != Q_new.shape:
+        raise ValueError("Q-tables must have the same shape")
+
+    delta = torch.abs(Q_new - Q_old)
+    return delta.mean().item()
+
+def policy_vector(agent):
+    return [torch.argmax(agent.Q[idx]).item() for idx in range(1024)]
+
+def hamming_distance(policy1, policy2):
+    return sum(a != b for a, b in zip(policy1, policy2)) / len(policy1)
+
+# -------- TRAINING -------------
 
 for epoch in range(NUM_EPOCHS):
     # For every pair of agents
@@ -92,7 +120,45 @@ for epoch in range(NUM_EPOCHS):
     # print training progress
     if (epoch + 1) % 100 == 0:
         print(f"Epoch {epoch + 1}, epsilon = {epsilon:.4f}, alpha = {alpha:.4f}")
-        #print("------------------------------------------------------------------------")
+
+        delta_qs = []
+        for agent in agents:
+            delta_q = mean_q_change(agent.prev_Q, agent.Q)
+            delta_qs.append(delta_q)
+        
+        average_delta_q = sum(delta_qs) / NUM_AGENTS
+        print(f"Average Q-value change: {average_delta_q:.6f}") # If it drops and stabilizes near zero, learning has plateaued.
+
+        # Entropy tracking
+        total_entropy = 0
+        for agent in agents:
+            entropy = 0
+            for q_row in agent.Q:
+                probs = torch.zeros(2)
+                best_action = torch.argmax(q_row)
+                probs[best_action] = 1.0
+                entropy += -torch.sum(probs * torch.log2(probs + 1e-8))
+            avg_entropy = entropy / 1024
+            total_entropy += avg_entropy
+        mean_entropy = total_entropy / NUM_AGENTS
+        print(f"Average policy entropy: {mean_entropy:.6f}") # Low entropy indicates convergence to a stable policy.
+
+        vectors = [policy_vector(agent) for agent in agents]
+        divergences = []
+
+        for i in range(len(agents)):
+            for j in range(i+1, len(agents)):                                # 0 = agents act the same
+                d = hamming_distance(vectors[i], vectors[j])                 # 0.5 = agents act diversly
+                divergences.append(d)                                        # 1 = agents act in opposite ways
+
+        mean_divergence = sum(divergences) / len(divergences)
+        print(f"Average pairwise policy divergence: {mean_divergence:.4f}") 
+
+        # Update prev_Q 
+        for agent in agents:
+            agent.prev_Q = agent.Q.clone()
+
+        print("------------------------------------------------------------------------")
 
 # Store agents
 with open("trained_agents.pkl", "wb") as f:

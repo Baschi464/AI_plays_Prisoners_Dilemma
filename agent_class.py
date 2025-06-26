@@ -9,6 +9,7 @@ class Agent:
         self.name = name
         self.Q = torch.zeros(self.NUM_STATES, self.NUM_ACTIONS)
         self.gamma = gamma
+        self.prev_Q = self.Q.clone()  # For tracking changes in Q-values during training
 
     def get_name(self):
         return self.name

@@ -1,5 +1,6 @@
 import torch
 import random
+from utils import encode_state, decode_state
 
 class Agent:
     NUM_STATES = 1024   # 4^5
@@ -14,24 +15,16 @@ class Agent:
     def get_name(self):
         return self.name
 
-    def encode_state(self, history):     # history is a list of 5 tuples: (self_action, opp_action)
-        """Encode last 5 (self, opp) moves as integer index ∈ [0, 1023]"""
-        idx = 0
-        for (a, b) in history:
-            code = a * 2 + b
-            idx = (idx << 2) | code
-        return idx
-
     def act(self, history, epsilon=0.1):
         """Return action (0 or 1) given history and exploration probability"""
-        state = self.encode_state(history)
+        state = encode_state(history)
         if random.random() < epsilon:
             return random.randint(0, 1)
         return torch.argmax(self.Q[state]).item()
 
     def update(self, history, action, reward, next_history, alpha=0.1):
         """Update Q-table based on transition"""
-        s = self.encode_state(history)
-        s_next = self.encode_state(next_history)
+        s = encode_state(history)
+        s_next = encode_state(next_history)
         td_target = reward + self.gamma * torch.max(self.Q[s_next])
         self.Q[s, action] += alpha * (td_target - self.Q[s, action])

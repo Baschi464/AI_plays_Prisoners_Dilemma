@@ -1,14 +1,15 @@
 import pickle
 import torch
 from collections import defaultdict
-from itertools import combinations
+from agent_class import Agent
+from hardcoded_agent_class import HardcodedAgent
 from main import tournament
 from matplotlib import pyplot as plt
+from utils import decode_state
 
 # Load trained agents
 with open("trained_agents.pkl", "rb") as f:
     agents = pickle.load(f)
-agent0, agent1, agent2, agent3, agent4, agent5, agent6, agent7, agent8, agent9 = agents
 
 def compute_agent_characteristics(agent_policy, opponent_policy):
     """
@@ -44,23 +45,23 @@ def compute_agent_characteristics(agent_policy, opponent_policy):
         last_round = history[-1]  # (agent_prev, opp_prev)
 
         # 1. Niceness: defecting first against always-cooperative opponent
-        if all(opp == 0 for _, opp in history):
+        if all(opp == 1 for _, opp in history):
             total_defection_opportunities += 1
-            if agent_action == 1:
+            if agent_action == 0:
                 first_defect_count += 1
 
         # 2. Retaliatory: defecting after opponent defected last round
-        if last_round[1] == 1:
+        if last_round[1] == 0:
             retaliate_total += 1
-            if agent_action == 1:
+            if agent_action == 0:
                 retaliate_count += 1
 
         # 3. Forgiving: cooperating after opponent defected and then cooperated
         if len(history) >= 2:
             prev_round = history[-2]
-            if prev_round[1] == 1 and last_round[1] == 0:
+            if prev_round[1] == 0 and last_round[1] == 1:
                 forgive_total += 1
-                if agent_action == 0:
+                if agent_action == 1:
                     forgive_count += 1
 
         # 4. Clarity: consistent responses to last opponent move
@@ -82,17 +83,6 @@ def compute_agent_characteristics(agent_policy, opponent_policy):
         "clarity": clarity_score
     }
 
-def decode_state(idx):
-    """Decode an integer index ∈ [0, 1023] into a 5-round history of (a, b) pairs"""
-    history = []
-    for _ in range(5):
-        code = idx & 0b11  # last 2 bits
-        b = code & 1
-        a = (code >> 1) & 1
-        history.insert(0, (a, b))
-        idx >>= 2
-    return history
-
 def decode_q_policy(agent):
     """
     Given an Agent with a Q-table, return a list of (history, action) tuples,
@@ -112,7 +102,18 @@ if __name__ == "__main__":
         agents = pickle.load(f)
 
     # Decode all policies once
-    all_decoded = {agent.get_name(): decode_q_policy(agent) for agent in agents}
+    all_decoded = {}
+
+    for agent in agents:
+        if isinstance(agent, HardcodedAgent):
+            # Hardcoded agents store their policy directly as a lookup table
+            decoded = [(decode_state(idx), agent.hardcoded_policy[idx]) for idx in range(1024)]
+        else:
+            # Learned agents use argmax over Q-table rows
+            decoded = decode_q_policy(agent)  # your function for standard agents
+        all_decoded[agent.get_name()] = decoded
+
+    # Initialize a dictionary to hold traits for each agent
     traits_by_agent = {}
 
     # Compute characteristics per agent vs others
@@ -157,6 +158,26 @@ if __name__ == "__main__":
         ax.set_ylabel("Tournament Score")
         ax.set_title(f"{trait.capitalize()} vs Tournament Score")
         ax.grid(True)
+
+    # Create histogram for average agent traits
+    fig_hist, ax_hist = plt.subplots(figsize=(12, 6))
+
+    # Prepare data for histogram
+    x = range(len(agents))  # Agent indices
+    averages = [
+        sum(traits_by_agent[agent.get_name()][trait] for trait in ["niceness", "retaliatory", "forgiving", "clarity"]) / 4
+        for agent in agents
+    ]
+
+    # Create bars for average scores
+    ax_hist.bar(x, averages, color='skyblue')
+
+    # Add labels and title
+    ax_hist.set_xticks(x)
+    ax_hist.set_xticklabels([agent.get_name() for agent in agents], rotation=45, ha='right')
+    ax_hist.set_ylabel("Average Trait Score")
+    ax_hist.set_title("Average Trait Scores per Agent")
+    ax_hist.grid(axis='y', linestyle='--', alpha=0.7)
 
     plt.tight_layout()
     plt.show()

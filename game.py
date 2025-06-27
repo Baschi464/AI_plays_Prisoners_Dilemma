@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import matplotlib.patches as mpatches
 import numpy as np
+from agent_class import Agent
+from hardcoded_agent_class import HardcodedAgent
 
 # -----------------------------------------------------------------
 
@@ -84,8 +86,15 @@ def game(agentA, agentB, visualize=False):
     for i in range(ROUNDS):
         
         # Actions: 0=defect; 1=cooperate
-        actA = agentA.act(history_A, epsilon=0)   # epsilon=0, this is no training, its a tournament game!
-        actB = agentB.act(history_B, epsilon=0)   # so it means no random exploration, just follow the Q-table
+        if isinstance(agentA, HardcodedAgent):
+            actA = agentA.act(history_A, i)
+        else:
+            actA = agentA.act(history_A, epsilon=0) # epsilon=0, this is no training, its a tournament game! It means no exploration, just follow the Q-table
+
+        if isinstance(agentB, HardcodedAgent):
+            actB = agentB.act(history_B, i)
+        else:
+            actB = agentB.act(history_B, epsilon=0) # epsilon=0, this is no training, its a tournament game! It means no exploration, just follow the Q-table
 
         # Rewards
         rewardA = REWARD_TABLE[(actA, actB)]
@@ -93,7 +102,7 @@ def game(agentA, agentB, visualize=False):
 
         # Update memory
         history_A = history_A[1:] + [(actA, actB)]
-        history_B = history_B[1:] + [(actA, actB)]
+        history_B = history_B[1:] + [(actB, actA)]
 
         # Update scores
         scoreA += rewardA

@@ -1,6 +1,8 @@
 import pickle
 from itertools import combinations
 from game import game, tournament_viz
+from hardcoded_agent_class import HardcodedAgent
+from agent_class import Agent
 
 ## AI agents, trained with Q-learning, play the Prisoner's Dilemma game
 
@@ -34,6 +36,3 @@ def tournament(tournament_rounds=10, visualize_matches=False):
 if __name__ == "__main__":
     results = tournament(tournament_rounds=10, visualize_matches=False)
     tournament_viz(list(results.keys()), list(results.values()))
-
-
-
